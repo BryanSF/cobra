@@ -47,32 +47,32 @@ func main() {
 			Age, _ := cmd.Flags().GetUint("age")
 			CompanyID, _ := cmd.Flags().GetUint("companyID")
 			nameCompany, _ := cmd.Flags().GetString("nameCompany")
-			tx := db.Begin()
-			if err := tx.Create(&Company{Name: nameCompany}).Error; err != nil {
-				tx.Rollback()
+			tx := db.Begin() // tx = transacao onde comeca um push request
+			if err := tx.Create(&Company{Name: nameCompany}).Error; err != nil { // verifica se todos os dados estao ok
+				tx.Rollback() // se nao estiverem ele reseta tudo e nao passa
 				fmt.Println("Error ao criar copanhia", err)
-				return
+				return// retorna o erro
 			}
-			if err := tx.Create(&User{Username: Username, Name: Name, Age: Age, CompanyID: CompanyID}).Error; err != nil {
-				tx.Rollback()
+			if err := tx.Create(&User{Username: Username, Name: Name, Age: Age, CompanyID: CompanyID}).Error; err != nil { // verifica se todos os dados estao ok
+				tx.Rollback() // se nao estiverem ele reseta tudo e nao passa
 				fmt.Println("Error ao criar usuario.", err)
-				return
+				return // retorna o erro
 			}
-			tx.Commit()
+			tx.Commit() //se tudo estiver ok ele lanca no banco o que foi pedido
 			fmt.Println("User and company created with successfully")
 		},
 	}
-	var searchCmd = &cobra.Command{
+	var searchCmd = &cobra.Command{ //cria uma variavel de procura 
 		Use:   "search",
 		Short: "Search in db table",
 		Run: func(cmd *cobra.Command, args []string) {
 			Username, _ := cmd.Flags().GetString("username")
 			nameCompany, _ := cmd.Flags().GetString("nameCompany")
-			var user User
-			db.Where("username = ?", Username).First(&user)
+			var user User //Variavel de usuario colocando a struct 
+			db.Where("username = ?", Username).First(&user) //Procura o username solicitado no banco de dados users
 			fmt.Println("User:", user)
-			var company Company
-			db.Where("nameCompany = ?", nameCompany).First(&company)
+			var company Company //Variavel de company com struct company
+			db.Where("nameCompany = ?", nameCompany).First(&company) //Procura o username solicitado no banco de dados companies
 			fmt.Println("nameCompany:", company)
 		},
 	}
@@ -87,12 +87,12 @@ func main() {
 	createCmd.MarkFlagRequired("companyID")
 	createCmd.Flags().String("nameCompany", "", "nameCompany for user")
 	createCmd.MarkFlagRequired("nameCompany")
-
+	//comandos cobra
 	searchCmd.Flags().String("username", "", "search username in user")
 	searchCmd.MarkFlagRequired("username")
 	searchCmd.Flags().String("nameCompany", "", "search nameCompany in company")
 	searchCmd.MarkFlagRequired("nameCompany")
-
+	//adicionado searchCmd no rootCmd
 	rootCmd.AddCommand(createCmd, searchCmd)
 	rootCmd.Execute()
 }
